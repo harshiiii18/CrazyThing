@@ -16,6 +16,9 @@ import Sell from "../pages/Sell";
 import ComingSoon from "../pages/ComingSoon";
 import NotFound from "../pages/NotFound";
 import Profile from "../pages/Profile";
+import SellerDashboard from "../pages/seller/SellerDashboard";
+import SellerProducts from "../pages/seller/SellerProducts";
+import SellerOrders from "../pages/seller/SellerOrders";
 
 export default function AppRoutes() {
   return (
@@ -25,12 +28,18 @@ export default function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ComingSoon title="Password reset" />} />
+        <Route
+          path="/forgot-password"
+          element={<ComingSoon title="Password reset" />}
+        />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/search" element={<Products />} />
         <Route path="/categories/:slug" element={<Products />} />
-        <Route path="/seller/:username" element={<ComingSoon title="Seller profile" />} />
+        <Route
+          path="/seller/:username"
+          element={<ComingSoon title="Seller profile" />}
+        />
 
         {/* Authenticated */}
         <Route path="/cart" element={<Cart />} />
@@ -40,18 +49,30 @@ export default function AppRoutes() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/messages" element={<ComingSoon title="Messages" />} />
-          <Route path="/notifications" element={<ComingSoon title="Notifications" />} />
+          <Route
+            path="/notifications"
+            element={<ComingSoon title="Notifications" />}
+          />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<ComingSoon title="Settings" />} />
 
           {/* Seller */}
           <Route path="/sell" element={<Sell />} />
-          <Route path="/seller/dashboard" element={<ComingSoon title="Seller dashboard" />} />
-          <Route path="/seller/products" element={<ComingSoon title="Your listings" />} />
-          <Route path="/seller/orders" element={<ComingSoon title="Seller orders" />} />
-          <Route path="/seller/offers" element={<ComingSoon title="Offers" />} />
-          <Route path="/seller/analytics" element={<ComingSoon title="Seller analytics" />} />
-          <Route path="/seller/verification" element={<ComingSoon title="Get verified" />} />
+          <Route path="/seller/dashboard" element={<SellerDashboard />} />
+          <Route path="/seller/products" element={<SellerProducts />} />
+          <Route path="/seller/orders" element={<SellerOrders />} />
+          <Route
+            path="/seller/offers"
+            element={<ComingSoon title="Offers" />}
+          />
+          <Route
+            path="/seller/analytics"
+            element={<ComingSoon title="Seller analytics" />}
+          />
+          <Route
+            path="/seller/verification"
+            element={<ComingSoon title="Get verified" />}
+          />
         </Route>
 
         <Route path="*" element={<NotFound />} />
