@@ -15,6 +15,7 @@ import OrderDetails from "../pages/OrderDetails";
 import Sell from "../pages/Sell";
 import ComingSoon from "../pages/ComingSoon";
 import NotFound from "../pages/NotFound";
+import Profile from "../pages/Profile";
 
 export default function AppRoutes() {
   return (
@@ -40,7 +41,7 @@ export default function AppRoutes() {
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/messages" element={<ComingSoon title="Messages" />} />
           <Route path="/notifications" element={<ComingSoon title="Notifications" />} />
-          <Route path="/profile" element={<ComingSoon title="Profile" />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<ComingSoon title="Settings" />} />
 
           {/* Seller */}
