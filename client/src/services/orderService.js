@@ -6,6 +6,7 @@ export const orderService = {
   myOrders: () => api.get("/orders").then((r) => r.data),
   getById: (id) => api.get(`/orders/${id}`).then((r) => r.data),
   cancel: (id, reason) => api.patch(`/orders/${id}/cancel`, { reason }).then((r) => r.data),
+  markDelivered: (id) => api.patch(`/orders/${id}/deliver`).then((r) => r.data),
 
   // Seller-side
   sellerOrders: () => api.get("/orders/seller/mine").then((r) => r.data),

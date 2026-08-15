@@ -20,6 +20,8 @@ import { productService } from "../services/productService";
 import { cartService } from "../services/cartService";
 import { wishlistService } from "../services/wishlistService";
 import { setCart } from "../redux/slices/cartSlice";
+import ReviewList from "../components/product/ReviewList";
+import { reviewService } from "../services/reviewService";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -28,6 +30,7 @@ export default function ProductDetails() {
   const token = useSelector((s) => s.auth.token);
 
   const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [similar, setSimilar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -44,10 +47,17 @@ export default function ProductDetails() {
       .getById(id)
       .then((res) => {
         setProduct(res.data);
-        return productService.list({ category: res.data.category?._id || res.data.category, limit: 5 });
+        return Promise.all([
+          productService.list({
+            category: res.data.category?._id || res.data.category,
+            limit: 5,
+          }),
+          reviewService.getForProduct(id),
+        ]);
       })
-      .then((res) => {
-        setSimilar((res?.data || []).filter((p) => p._id !== id));
+      .then(([similarRes, reviewsRes]) => {
+        setSimilar((similarRes?.data || []).filter((p) => p._id !== id));
+        setReviews(reviewsRes.data);
       })
       .catch((err) => setError(err.message || "Could not load this listing"))
       .finally(() => setLoading(false));
@@ -104,7 +114,9 @@ export default function ProductDetails() {
       <div className="mx-auto max-w-2xl px-4 py-20">
         <EmptyState
           title="Listing not found"
-          description={error || "This item may have been sold or removed by the seller."}
+          description={
+            error || "This item may have been sold or removed by the seller."
+          }
           action={
             <Button as={Link} to="/products" variant="secondary">
               Back to browsing
@@ -115,9 +127,11 @@ export default function ProductDetails() {
     );
   }
 
-  const gallery = product.images?.length ? product.images.map((i) => i.url) : [
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80",
-  ];
+  const gallery = product.images?.length
+    ? product.images.map((i) => i.url)
+    : [
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80",
+      ];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -141,7 +155,11 @@ export default function ProductDetails() {
                     activeImage === i ? "border-ember" : "border-line"
                   }`}
                 >
-                  <img src={img} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={img}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -160,9 +178,17 @@ export default function ProductDetails() {
                 className="rounded-full border border-line p-2.5 hover:border-ember/40"
                 aria-label="Save to wishlist"
               >
-                <Heart size={17} className={wished ? "fill-ember text-ember" : "text-ink_text-mid"} />
+                <Heart
+                  size={17}
+                  className={
+                    wished ? "fill-ember text-ember" : "text-ink_text-mid"
+                  }
+                />
               </button>
-              <button className="rounded-full border border-line p-2.5 hover:border-ember/40" aria-label="Share">
+              <button
+                className="rounded-full border border-line p-2.5 hover:border-ember/40"
+                aria-label="Share"
+              >
                 <Share2 size={17} className="text-ink_text-mid" />
               </button>
             </div>
@@ -170,7 +196,12 @@ export default function ProductDetails() {
 
           <div className="mt-3 flex items-center gap-2">
             <Price amount={product.price} size="lg" />
-            <Badge tone="ember">{product.condition?.replaceAll("_", " ")}</Badge>
+            <Badge tone="ember">
+              {product.condition?.replaceAll("_", " ")}
+            </Badge>
+            {product.ratingCount > 0 && (
+              <Rating value={product.ratingAvg} count={product.ratingCount} />
+            )}
           </div>
 
           <p className="mt-1 text-sm text-ink_text-low">{product.location}</p>
@@ -182,18 +213,25 @@ export default function ProductDetails() {
           {/* SELLER CARD */}
           {product.seller && (
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-line bg-surface p-4">
-              <Link to={`/seller/${product.seller.username}`} className="flex items-center gap-3">
+              <Link
+                to={`/seller/${product.seller.username}`}
+                className="flex items-center gap-3"
+              >
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised font-medium text-ink_text-hi">
                   {product.seller.name?.[0]}
                 </div>
                 <div>
                   <div className="flex items-center gap-1 text-sm font-medium text-ink_text-hi">
                     {product.seller.name}
-                    {product.seller.sellerVerification?.status === "VERIFIED" && (
+                    {product.seller.sellerVerification?.status ===
+                      "VERIFIED" && (
                       <BadgeCheck size={14} className="text-signal-green" />
                     )}
                   </div>
-                  <Rating value={product.seller.ratingAvg || 0} count={product.seller.ratingCount || 0} />
+                  <Rating
+                    value={product.seller.ratingAvg || 0}
+                    count={product.seller.ratingCount || 0}
+                  />
                 </div>
               </Link>
               <Button variant="secondary" size="sm">
@@ -204,7 +242,12 @@ export default function ProductDetails() {
 
           {/* ACTIONS */}
           <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
-            <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={addingToCart}>
+            <Button
+              size="lg"
+              className="flex-1"
+              onClick={handleAddToCart}
+              disabled={addingToCart}
+            >
               Buy now
             </Button>
             <Button
@@ -216,12 +259,18 @@ export default function ProductDetails() {
             >
               {addingToCart ? "Adding…" : "Add to cart"}
             </Button>
-            <Button variant="ghost" size="lg" onClick={() => setOfferOpen(true)}>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setOfferOpen(true)}
+            >
               Make offer
             </Button>
           </div>
 
-          {cartMessage && <p className="mt-2 text-xs text-ink_text-mid">{cartMessage}</p>}
+          {cartMessage && (
+            <p className="mt-2 text-xs text-ink_text-mid">{cartMessage}</p>
+          )}
 
           {offerOpen && (
             <div className="mt-4 rounded-2xl border border-line bg-surface p-4">
@@ -237,7 +286,8 @@ export default function ProductDetails() {
                 <Button type="submit">Send</Button>
               </form>
               <p className="mt-2 text-xs text-ink_text-low">
-                Offers are stored for a future phase — not yet wired to the backend.
+                Offers are stored for a future phase — not yet wired to the
+                backend.
               </p>
             </div>
           )}
@@ -251,6 +301,13 @@ export default function ProductDetails() {
             <Flag size={13} /> Report this listing
           </button>
         </div>
+      </div>
+
+      <div className="mt-16">
+        <h2 className="mb-5 font-display text-xl font-semibold text-ink_text-hi">
+          Reviews {product.ratingCount > 0 && `(${product.ratingCount})`}
+        </h2>
+        <ReviewList reviews={reviews} />
       </div>
 
       {similar.length > 0 && (
@@ -276,7 +333,9 @@ function mapToCardShape(p) {
     price: p.price,
     condition: p.condition?.replaceAll("_", " "),
     location: p.location,
-    image: p.images?.[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80",
+    image:
+      p.images?.[0]?.url ||
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80",
     sellerName: p.seller?.name || "Seller",
     sellerVerified: p.seller?.sellerVerification?.status === "VERIFIED",
   };

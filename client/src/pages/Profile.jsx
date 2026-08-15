@@ -2,10 +2,16 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { BadgeCheck, Loader2, Package, ShoppingBag, LogOut } from "lucide-react";
+import {
+  BadgeCheck,
+  Loader2,
+  ShoppingBag,
+  LogOut,
+  LayoutDashboard,
+  ChevronRight,
+} from "lucide-react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
-import Badge from "../components/ui/Badge";
 import { userService } from "../services/userService";
 import { fetchCurrentUser, logout } from "../redux/slices/authSlice";
 
@@ -37,6 +43,33 @@ export default function Profile() {
         </button>
       </div>
 
+      {/* Buying vs. Selling — one link each, side by side */}
+      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <p className="mb-2.5 px-1 text-xs font-medium uppercase tracking-wide text-ink_text-low">
+            Buying
+          </p>
+          <QuickLink
+            to="/orders"
+            icon={ShoppingBag}
+            label="Your orders"
+            hint="Track purchases and deliveries"
+          />
+        </div>
+
+        <div>
+          <p className="mb-2.5 px-1 text-xs font-medium uppercase tracking-wide text-ink_text-low">
+            Selling
+          </p>
+          <QuickLink
+            to="/seller/dashboard"
+            icon={LayoutDashboard}
+            label="Seller dashboard"
+            hint="Listings, orders, and stats"
+          />
+        </div>
+      </div>
+
       <div className="mb-6 flex gap-1 border-b border-line">
         {[
           ["details", "Profile details"],
@@ -58,30 +91,28 @@ export default function Profile() {
 
       {tab === "details" && <DetailsForm user={user} dispatch={dispatch} />}
       {tab === "password" && <PasswordForm />}
-
-      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Link
-          to="/orders"
-          className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-ember/40"
-        >
-          <ShoppingBag size={18} className="text-ember" />
-          <div>
-            <p className="text-sm font-medium text-ink_text-hi">Your orders</p>
-            <p className="text-xs text-ink_text-low">Track purchases and deliveries</p>
-          </div>
-        </Link>
-        <Link
-          to="/seller/products"
-          className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-ember/40"
-        >
-          <Package size={18} className="text-ember" />
-          <div>
-            <p className="text-sm font-medium text-ink_text-hi">Your listings</p>
-            <p className="text-xs text-ink_text-low">Manage items you're selling</p>
-          </div>
-        </Link>
-      </div>
     </div>
+  );
+}
+
+function QuickLink({ to, icon: Icon, label, hint }) {
+  return (
+    <Link
+      to={to}
+      className="group flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 transition-colors hover:border-ember/40 hover:bg-surface-raised"
+    >
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ember/10 text-ember transition-colors group-hover:bg-ember/15">
+        <Icon size={16} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-ink_text-hi">{label}</p>
+        <p className="truncate text-xs text-ink_text-low">{hint}</p>
+      </div>
+      <ChevronRight
+        size={15}
+        className="shrink-0 text-ink_text-low transition-transform group-hover:translate-x-0.5 group-hover:text-ink_text-mid"
+      />
+    </Link>
   );
 }
 

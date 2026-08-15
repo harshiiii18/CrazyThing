@@ -19,6 +19,10 @@ import Profile from "../pages/Profile";
 import SellerDashboard from "../pages/seller/SellerDashboard";
 import SellerProducts from "../pages/seller/SellerProducts";
 import SellerOrders from "../pages/seller/SellerOrders";
+import AdminRoute from "./AdminRoute";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminUsers from "../pages/admin/AdminUsers";
+import AdminProducts from "../pages/admin/AdminProducts";
 
 export default function AppRoutes() {
   return (
@@ -73,6 +77,13 @@ export default function AppRoutes() {
             path="/seller/verification"
             element={<ComingSoon title="Get verified" />}
           />
+        </Route>
+
+        {/* Admin */}
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

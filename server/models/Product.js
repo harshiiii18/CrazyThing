@@ -32,6 +32,8 @@ const productSchema = new mongoose.Schema(
     },
 
     views: { type: Number, default: 0 },
+    ratingAvg: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
 
     aiGenerated: {
       title: Boolean,

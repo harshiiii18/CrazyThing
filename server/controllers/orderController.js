@@ -185,9 +185,13 @@ exports.markShipped = asyncHandler(async (req, res) => {
 });
 
 // PATCH /api/orders/:id/deliver — buyer confirms receipt, or admin/seller marks delivered
+// PATCH /api/orders/:id/deliver — buyer confirms receipt
 exports.markDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (!order) throw new ApiError(404, "Order not found");
+  if (order.buyer.toString() !== req.user._id.toString() && req.user.role !== "ADMIN") {
+    throw new ApiError(403, "Only the buyer can confirm delivery");
+  }
   if (!["SHIPPED", "OUT_FOR_DELIVERY"].includes(order.status)) {
     throw new ApiError(400, "Order has not been shipped yet");
   }

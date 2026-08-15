@@ -6,15 +6,34 @@ import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
 import OrderTimeline from "../components/product/OrderTimeline";
 import { orderService } from "../services/orderService";
+import ReviewForm from "../components/product/ReviewForm";
+import { reviewService } from "../services/reviewService";
 
-const CANCELLABLE = ["PENDING_PAYMENT", "PAID", "SELLER_CONFIRMATION_PENDING", "CONFIRMED"];
+const CANCELLABLE = [
+  "PENDING_PAYMENT",
+  "PAID",
+  "SELLER_CONFIRMATION_PENDING",
+  "CONFIRMED",
+];
 
 export default function OrderDetails() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
+  const [reviewedProducts, setReviewedProducts] = useState([]);
+  const [reviewingProduct, setReviewingProduct] = useState(null);
+
+  useEffect(() => {
+    if (order?.status === "DELIVERED" || order?.status === "COMPLETED") {
+      reviewService
+        .getForOrder(id)
+        .then((res) => setReviewedProducts(res.data.map((r) => r.product)))
+        .catch(() => {});
+    }
+  }, [order, id]);
 
   const load = () => {
     orderService
@@ -35,6 +54,18 @@ export default function OrderDetails() {
       setError(err.message || "Could not cancel this order");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleMarkDelivered = async () => {
+    setConfirming(true);
+    try {
+      await orderService.markDelivered(id);
+      load();
+    } catch (err) {
+      setError(err.message || "Could not confirm delivery");
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -61,22 +92,42 @@ export default function OrderDetails() {
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="font-mono text-xs text-ink_text-low">Order #{order._id.slice(-8)}</p>
+          <p className="font-mono text-xs text-ink_text-low">
+            Order #{order._id.slice(-8)}
+          </p>
           <h1 className="font-display text-2xl font-semibold text-ink_text-hi">
             Placed {new Date(order.createdAt).toLocaleDateString()}
           </h1>
         </div>
-        {CANCELLABLE.includes(order.status) && (
-          <Button variant="danger" size="sm" onClick={handleCancel} disabled={cancelling}>
-            {cancelling ? "Cancelling…" : "Cancel order"}
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {["SHIPPED", "OUT_FOR_DELIVERY"].includes(order.status) && (
+            <Button
+              size="sm"
+              onClick={handleMarkDelivered}
+              disabled={confirming}
+            >
+              {confirming ? "Confirming…" : "Mark as delivered"}
+            </Button>
+          )}
+          {CANCELLABLE.includes(order.status) && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelling…" : "Cancel order"}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
         <div>
           <div className="rounded-2xl border border-line bg-surface p-5">
-            <h2 className="mb-4 text-sm font-medium text-ink_text-hi">Status</h2>
+            <h2 className="mb-4 text-sm font-medium text-ink_text-hi">
+              Status
+            </h2>
             <OrderTimeline status={order.status} />
           </div>
 
@@ -90,7 +141,9 @@ export default function OrderDetails() {
                 {order.tracking.estimatedDelivery && (
                   <p className="text-ink_text-low">
                     Estimated delivery:{" "}
-                    {new Date(order.tracking.estimatedDelivery).toLocaleDateString()}
+                    {new Date(
+                      order.tracking.estimatedDelivery,
+                    ).toLocaleDateString()}
                   </p>
                 )}
               </div>
@@ -103,11 +156,51 @@ export default function OrderDetails() {
               {order.items.map((item) => (
                 <div key={item._id} className="flex items-center gap-4">
                   {item.image && (
-                    <img src={item.image} alt={item.title} className="h-14 w-14 rounded-xl object-cover" />
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-14 w-14 rounded-xl object-cover"
+                    />
                   )}
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-ink_text-hi">{item.title}</p>
-                    <p className="text-xs text-ink_text-low">Qty {item.quantity}</p>
+                    <p className="text-sm font-medium text-ink_text-hi">
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-ink_text-low">
+                      Qty {item.quantity}
+                    </p>
+                    {(order.status === "DELIVERED" ||
+                      order.status === "COMPLETED") && (
+                      <>
+                        {reviewedProducts.includes(item.product) ? (
+                          <p className="mt-1 text-xs text-signal-green">
+                            ✓ Reviewed
+                          </p>
+                        ) : reviewingProduct === item.product ? (
+                          <div className="mt-2">
+                            <ReviewForm
+                              orderId={order._id}
+                              productId={item.product}
+                              productTitle={item.title}
+                              onSubmitted={() => {
+                                setReviewedProducts((prev) => [
+                                  ...prev,
+                                  item.product,
+                                ]);
+                                setReviewingProduct(null);
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setReviewingProduct(item.product)}
+                            className="mt-1 text-xs font-medium text-ember-soft hover:underline"
+                          >
+                            Leave a review
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                   <Price amount={item.price * item.quantity} size="sm" />
                 </div>
@@ -118,12 +211,16 @@ export default function OrderDetails() {
 
         <div>
           <div className="rounded-2xl border border-line bg-surface p-5">
-            <h2 className="mb-3 text-sm font-medium text-ink_text-hi">Shipping to</h2>
+            <h2 className="mb-3 text-sm font-medium text-ink_text-hi">
+              Shipping to
+            </h2>
             <p className="text-sm text-ink_text-mid">
               {order.shippingAddress?.fullName}
               <br />
               {order.shippingAddress?.line1}
-              {order.shippingAddress?.line2 && <>, {order.shippingAddress.line2}</>}
+              {order.shippingAddress?.line2 && (
+                <>, {order.shippingAddress.line2}</>
+              )}
               <br />
               {order.shippingAddress?.city}, {order.shippingAddress?.state}{" "}
               {order.shippingAddress?.pincode}
@@ -133,7 +230,9 @@ export default function OrderDetails() {
           </div>
 
           <div className="mt-6 rounded-2xl border border-line bg-surface p-5">
-            <h2 className="mb-3 text-sm font-medium text-ink_text-hi">Payment</h2>
+            <h2 className="mb-3 text-sm font-medium text-ink_text-hi">
+              Payment
+            </h2>
             <div className="flex justify-between text-sm text-ink_text-mid">
               <span>Subtotal</span>
               <span className="font-mono text-ink_text-hi">

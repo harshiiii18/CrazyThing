@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Heart, ShoppingCart, MessageCircle, Menu, X, Sparkles } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingCart,
+  MessageCircle,
+  Menu,
+  X,
+  Sparkles,
+  LayoutDashboard,
+  LogIn,
+} from "lucide-react";
 import { useSelector } from "react-redux";
 import Button from "../ui/Button";
 
@@ -44,44 +54,67 @@ export default function Navbar() {
         </form>
 
         <nav className="ml-auto hidden items-center gap-1 md:flex">
-          <Link
-            to="/wishlist"
-            className="rounded-full p-2.5 text-ink_text-mid hover:bg-surface hover:text-ink_text-hi"
-          >
-            <Heart size={19} />
-          </Link>
-          <Link
-            to="/messages"
-            className="rounded-full p-2.5 text-ink_text-mid hover:bg-surface hover:text-ink_text-hi"
-          >
-            <MessageCircle size={19} />
-          </Link>
-          <Link
-            to="/cart"
-            className="relative rounded-full p-2.5 text-ink_text-mid hover:bg-surface hover:text-ink_text-hi"
-          >
-            <ShoppingCart size={19} />
-            {cartCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-ember text-[10px] font-bold text-ink">
-                {cartCount}
-              </span>
-            )}
-          </Link>
-
-          {user ? (
-            <Link to="/profile" className="ml-2 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised text-sm font-medium text-ink_text-hi">
-                {user.name?.[0]?.toUpperCase() || "U"}
-              </div>
+          {/* Icon group */}
+          <div className="flex items-center gap-0.5 rounded-full border border-line bg-surface/60 p-1">
+            <Link
+              to="/wishlist"
+              className="rounded-full p-2 text-ink_text-mid transition-colors hover:bg-surface-raised hover:text-ink_text-hi"
+              title="Wishlist"
+            >
+              <Heart size={18} />
             </Link>
-          ) : (
-            <Button as={Link} to="/login" size="sm" className="ml-2">
-              Sign in
+            <Link
+              to="/messages"
+              className="rounded-full p-2 text-ink_text-mid transition-colors hover:bg-surface-raised hover:text-ink_text-hi"
+              title="Messages"
+            >
+              <MessageCircle size={18} />
+            </Link>
+            <Link
+              to="/cart"
+              className="relative rounded-full p-2 text-ink_text-mid transition-colors hover:bg-surface-raised hover:text-ink_text-hi"
+              title="Cart"
+            >
+              <ShoppingCart size={18} />
+              {cartCount > 0 && (
+                <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-ember text-[10px] font-bold text-ink">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+            {user && (
+              <Link
+                to="/seller/dashboard"
+                className="rounded-full p-2 text-ink_text-mid transition-colors hover:bg-surface-raised hover:text-ink_text-hi"
+                title="Seller dashboard"
+              >
+                <LayoutDashboard size={18} />
+              </Link>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="mx-2 h-6 w-px bg-line" />
+
+          {/* Auth + Sell */}
+          <div className="flex items-center gap-2">
+            {user ? (
+              <Link
+                to="/profile"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-sm font-medium text-ink_text-hi ring-1 ring-line transition-shadow hover:ring-ember/40"
+                title={user.name}
+              >
+                {user.name?.[0]?.toUpperCase() || "U"}
+              </Link>
+            ) : (
+              <Button as={Link} to="/login" variant="secondary" size="sm">
+                <LogIn size={14} /> Sign in
+              </Button>
+            )}
+            <Button as={Link} to="/sell" size="sm">
+              Sell
             </Button>
-          )}
-          <Button as={Link} to="/sell" variant="secondary" size="sm">
-            Sell
-          </Button>
+          </div>
         </nav>
 
         <button
@@ -112,23 +145,35 @@ export default function Navbar() {
               className="w-full rounded-full border border-line bg-surface py-3 pl-10 pr-4 text-sm text-ink_text-hi outline-none focus:border-ember"
             />
           </form>
+
+          {!user && (
+            <div className="mx-4 mb-4">
+              <Button as={Link} to="/login" onClick={() => setDrawerOpen(false)} className="w-full">
+                <LogIn size={15} /> Sign in
+              </Button>
+            </div>
+          )}
+
           <div className="flex flex-col gap-1 px-4">
             {[
               ["Wishlist", "/wishlist"],
               ["Messages", "/messages"],
               ["Cart", "/cart"],
               ["Sell an item", "/sell"],
-              [user ? "Profile" : "Sign in", user ? "/profile" : "/login"],
-            ].map(([label, to]) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setDrawerOpen(false)}
-                className="rounded-xl px-3 py-3 text-base text-ink_text-hi hover:bg-surface"
-              >
-                {label}
-              </Link>
-            ))}
+              ...(user ? [["Seller dashboard", "/seller/dashboard"]] : []),
+              [user ? "Profile" : null, user ? "/profile" : null],
+            ]
+              .filter(([label]) => label)
+              .map(([label, to]) => (
+                <Link
+                  key={to}
+                  to={to}
+                  onClick={() => setDrawerOpen(false)}
+                  className="rounded-xl px-3 py-3 text-base text-ink_text-hi hover:bg-surface"
+                >
+                  {label}
+                </Link>
+              ))}
           </div>
         </div>
       )}
