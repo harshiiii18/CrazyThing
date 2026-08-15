@@ -64,7 +64,25 @@ export default function Footer() {
         </div>
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-line pt-6 text-xs text-ink_text-low sm:flex-row">
           <span>© {new Date().getFullYear()} CrazyThing. All rights reserved.</span>
-          <span>Made for buyers and sellers who move fast.</span>
+          <span className="flex items-center gap-3">
+            <span>Built by Harshita Parsendiya</span>
+            <a
+              href="https://github.com/harshiiii18"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-ink_text-mid hover:text-ember-soft"
+            >
+              GitHub
+            </a>
+            <a
+              href="https://www.linkedin.com/in/harshita-parsendiya-161252334"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-ink_text-mid hover:text-ember-soft"
+            >
+              LinkedIn
+            </a>
+          </span>
         </div>
       </div>
     </footer>

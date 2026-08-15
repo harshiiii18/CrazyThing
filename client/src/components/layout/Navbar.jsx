@@ -10,6 +10,7 @@ import {
   Sparkles,
   LayoutDashboard,
   LogIn,
+  ShieldCheck,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import Button from "../ui/Button";
@@ -29,7 +30,10 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-ink/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex items-center gap-1 font-display text-xl font-bold text-ink_text-hi shrink-0">
+        <Link
+          to="/"
+          className="flex items-center gap-1 font-display text-xl font-bold text-ink_text-hi shrink-0"
+        >
           Crazy<span className="text-ember">Thing</span>
         </Link>
 
@@ -46,7 +50,9 @@ export default function Navbar() {
           />
           <button
             type="button"
-            onClick={() => navigate(`/search?ai=1&q=${encodeURIComponent(query)}`)}
+            onClick={() =>
+              navigate(`/search?ai=1&q=${encodeURIComponent(query)}`)
+            }
             className="absolute right-1.5 flex items-center gap-1 rounded-full bg-ember/15 px-3 py-1.5 text-xs font-medium text-ember-soft hover:bg-ember/25"
           >
             <Sparkles size={12} /> AI
@@ -91,6 +97,15 @@ export default function Navbar() {
                 <LayoutDashboard size={18} />
               </Link>
             )}
+            {user?.role === "ADMIN" && (
+              <Link
+                to="/admin"
+                className="rounded-full p-2 text-ink_text-mid transition-colors hover:bg-surface-raised hover:text-ink_text-hi"
+                title="Admin panel"
+              >
+                <ShieldCheck size={18} />
+              </Link>
+            )}
           </div>
 
           {/* Divider */}
@@ -132,11 +147,17 @@ export default function Navbar() {
             <span className="font-display text-lg font-bold">
               Crazy<span className="text-ember">Thing</span>
             </span>
-            <button onClick={() => setDrawerOpen(false)} aria-label="Close menu">
+            <button
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close menu"
+            >
               <X size={22} />
             </button>
           </div>
-          <form onSubmit={handleSearch} className="relative mx-4 mb-6 flex items-center">
+          <form
+            onSubmit={handleSearch}
+            className="relative mx-4 mb-6 flex items-center"
+          >
             <Search size={16} className="absolute left-3.5 text-ink_text-low" />
             <input
               value={query}
@@ -148,7 +169,12 @@ export default function Navbar() {
 
           {!user && (
             <div className="mx-4 mb-4">
-              <Button as={Link} to="/login" onClick={() => setDrawerOpen(false)} className="w-full">
+              <Button
+                as={Link}
+                to="/login"
+                onClick={() => setDrawerOpen(false)}
+                className="w-full"
+              >
                 <LogIn size={15} /> Sign in
               </Button>
             </div>
@@ -161,6 +187,7 @@ export default function Navbar() {
               ["Cart", "/cart"],
               ["Sell an item", "/sell"],
               ...(user ? [["Seller dashboard", "/seller/dashboard"]] : []),
+              ...(user?.role === "ADMIN" ? [["Admin panel", "/admin"]] : []),
               [user ? "Profile" : null, user ? "/profile" : null],
             ]
               .filter(([label]) => label)
