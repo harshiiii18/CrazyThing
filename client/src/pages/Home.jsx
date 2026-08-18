@@ -52,39 +52,38 @@ export default function Home() {
 
   return (
     <div>
-      {/* HERO — both panels share the exact same solid black bg (bg-black),
-          so there is no visible seam between left content and right image.
-          Left content is capped at a max-width and centered vertically,
-          with left padding matched to the navbar's logo position (px-6 / sm:px-10)
-          so the heading lines up with "CrazyThing" in the nav bar above it. */}
+      {/* HERO */}
       <section className="relative overflow-hidden border-b border-line bg-black">
-        {/* Inner wrapper uses the EXACT same "mx-auto max-w-7xl px-4 sm:px-6"
-            container as Navbar.jsx, so on large screens where the navbar's
-            content is centered (not flush to the viewport edge), the hero
-            heading lines up under "Crazy" instead of sitting further left. */}
         <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-2">
-          {/* LEFT — py trimmed down (was py-24/py-28, way too much air above
-              the badge) and text sizes bumped up so the hero feels as big
-              and confident as the layout it sits in. */}
+          {/* LEFT */}
           <div className="relative z-10 flex flex-col justify-center px-4 py-10 sm:px-6 sm:py-14 md:py-16">
             <div className="w-full max-w-lg">
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-ember/30 bg-ember/10 px-3 py-1 text-xs font-medium text-ember-soft">
+              <span className="inline-flex w-fit animate-fade-up items-center gap-1.5 rounded-full border border-ember/30 bg-ember/10 px-3 py-1 text-xs font-medium text-ember-soft">
                 <Sparkles size={12} /> AI-powered discovery
               </span>
 
-              <h1 className="mt-6 font-display text-5xl font-bold leading-[1.05] text-ink_text-hi sm:text-6xl">
+              <h1
+                className="mt-6 animate-fade-up font-display text-5xl font-bold leading-[1.05] text-ink_text-hi sm:text-6xl"
+                style={{ animationDelay: "0.08s" }}
+              >
                 Buy. Sell.
                 <br />
                 Discover <span className="text-ember">Everything.</span>
               </h1>
 
-              <p className="mt-6 max-w-md text-base leading-relaxed text-ink_text-mid">
+              <p
+                className="mt-6 max-w-md animate-fade-up text-base leading-relaxed text-ink_text-mid"
+                style={{ animationDelay: "0.16s" }}
+              >
                 A marketplace for anything with a second life — listed by
                 real people nearby, backed by verified sellers and secure
                 checkout.
               </p>
 
-              <div className="mt-9 flex flex-wrap items-center gap-3">
+              <div
+                className="mt-9 flex animate-fade-up flex-wrap items-center gap-3"
+                style={{ animationDelay: "0.24s" }}
+              >
                 <Button
                   as={Link}
                   to="/products"
@@ -98,13 +97,36 @@ export default function Home() {
                 </Button>
               </div>
 
+              {/* Mobile-only product visual — shown right under the CTAs on
+                  small screens, since the right panel image is desktop-only */}
+              <div
+                className="mt-8 flex animate-fade-up justify-center md:hidden"
+                style={{ animationDelay: "0.3s" }}
+              >
+                <div className="relative flex h-56 w-full max-w-xs items-center justify-center overflow-hidden rounded-2xl bg-black">
+                  <div
+                    className="pointer-events-none absolute h-48 w-48 rounded-full opacity-40"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(255,90,31,0.18) 0%, transparent 70%)",
+                    }}
+                  />
+                  <img
+                    src={heroImage}
+                    alt="Featured listing"
+                    className="relative h-auto max-h-[90%] w-auto max-w-[88%] object-contain"
+                  />
+                </div>
+              </div>
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (query.trim())
                     navigate(`/search?q=${encodeURIComponent(query)}`);
                 }}
-                className="relative mt-7 flex max-w-md items-center"
+                className="relative mt-7 flex max-w-md animate-fade-up items-center"
+                style={{ animationDelay: "0.32s" }}
               >
                 <Search
                   size={16}
@@ -118,7 +140,10 @@ export default function Home() {
                 />
               </form>
 
-              <div className="relative mt-5">
+              <div
+                className="relative mt-5 animate-fade-up"
+                style={{ animationDelay: "0.4s" }}
+              >
                 <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {categories.slice(0, 6).map((cat) => (
                     <Link
@@ -130,11 +155,13 @@ export default function Home() {
                     </Link>
                   ))}
                 </div>
-                {/* Fade hint so it's obvious the row scrolls when it overflows */}
                 <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-black to-transparent" />
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div
+                className="mt-8 flex animate-fade-up flex-wrap items-center gap-3"
+                style={{ animationDelay: "0.46s" }}
+              >
                 <div className="flex items-center gap-1.5 rounded-full border border-line/60 bg-surface/50 px-3.5 py-2">
                   <ShieldCheck size={13} className="text-signal-green" />
                   <span className="text-xs font-medium text-ink_text-hi">
@@ -150,23 +177,22 @@ export default function Home() {
             </div>
           </div>
 
-          {/* RIGHT — same bg-black (inherited from section). A very
-              subtle radial glow sits behind the image only (not touching
-              the panel edges) for depth, without changing the flat black
-              background. Image pulled up further (less bottom padding
-              than before) to close the empty space beneath it. */}
-          <div className="relative hidden min-h-[620px] flex-col items-center justify-center overflow-hidden pb-10 pt-6 md:flex">
+                                       {/* RIGHT — image shifted further up and slightly left so it sits
+              centered within the panel's visible width, not pushed toward
+              the right edge */}
+          <div className="relative hidden min-h-[620px] items-center justify-center overflow-hidden md:flex">
             <div
-              className="pointer-events-none absolute h-[420px] w-[420px] rounded-full opacity-40"
+              className="pointer-events-none absolute -ml-6 -mt-16 h-[500px] w-[500px] rounded-full opacity-40"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(255,90,31,0.16) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(255,90,31,0.18) 0%, transparent 70%)",
               }}
             />
             <img
               src={heroImage}
               alt="Featured listing"
-              className="relative h-auto max-h-[82%] w-auto max-w-[84%] object-contain"
+              className="relative -ml-20 -mt-20 h-auto max-h-[100%] w-auto max-w-[100%] animate-fade-up object-contain"
+              style={{ animationDelay: "0.2s" }}
             />
           </div>
         </div>

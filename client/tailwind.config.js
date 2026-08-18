@@ -22,7 +22,7 @@ export default {
         card: "0 8px 30px -12px rgba(0,0,0,0.6)",
         glow: "0 0 0 1px rgba(255,90,31,0.25), 0 8px 24px -8px rgba(255,90,31,0.35)",
       },
-      keyframes: {
+            keyframes: {
         drift: {
           "0%, 100%": { transform: "translateY(0px) rotate(var(--tilt, 0deg))" },
           "50%": { transform: "translateY(-10px) rotate(var(--tilt, 0deg))" },
@@ -31,10 +31,15 @@ export default {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(14px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         drift: "drift 6s ease-in-out infinite",
         marquee: "marquee 40s linear infinite",
+        "fade-up": "fadeUp 0.6s ease-out both",
       },
     },
   },
