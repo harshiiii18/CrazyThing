@@ -76,6 +76,26 @@ exports.getProduct = asyncHandler(async (req, res) => {
   return success(res, { message: "Product fetched", data: product });
 });
 
+// GET /api/products/:id/contact-seller — protected, so seller contact info
+// is only exposed to logged-in buyers, not scraped from the public listing.
+exports.getSellerContact = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id).populate(
+    "seller",
+    "name username email phone"
+  );
+  if (!product) throw new ApiError(404, "Product not found");
+
+  return success(res, {
+    message: "Seller contact fetched",
+    data: {
+      name: product.seller.name,
+      username: product.seller.username,
+      email: product.seller.email,
+      phone: product.seller.phone || null,
+    },
+  });
+});
+
 // POST /api/products — seller creates a listing
 exports.createProduct = asyncHandler(async (req, res) => {
   const product = await Product.create({ ...req.body, seller: req.user._id });

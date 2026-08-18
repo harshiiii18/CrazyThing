@@ -13,6 +13,8 @@ import Checkout from "../pages/Checkout";
 import Orders from "../pages/Orders";
 import OrderDetails from "../pages/OrderDetails";
 import Sell from "../pages/Sell";
+import { MessageCircle } from "lucide-react";
+import Messages from "../pages/Messages";
 import ComingSoon from "../pages/ComingSoon";
 import NotFound from "../pages/NotFound";
 import Profile from "../pages/Profile";
@@ -52,7 +54,7 @@ export default function AppRoutes() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
-          <Route path="/messages" element={<ComingSoon title="Messages" />} />
+          <Route path="/messages" element={<Messages />} />
           <Route
             path="/notifications"
             element={<ComingSoon title="Notifications" />}

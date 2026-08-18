@@ -8,6 +8,10 @@ import {
   BadgeCheck,
   MessageCircle,
   ShieldCheck,
+  Mail,
+  Phone,
+  Loader2,
+  X,
 } from "lucide-react";
 import Price from "../components/ui/Price";
 import Badge from "../components/ui/Badge";
@@ -16,12 +20,12 @@ import Button from "../components/ui/Button";
 import ProductCard from "../components/product/ProductCard";
 import EmptyState from "../components/ui/EmptyState";
 import Skeleton from "../components/ui/Skeleton";
+import ReviewList from "../components/product/ReviewList";
 import { productService } from "../services/productService";
 import { cartService } from "../services/cartService";
 import { wishlistService } from "../services/wishlistService";
-import { setCart } from "../redux/slices/cartSlice";
-import ReviewList from "../components/product/ReviewList";
 import { reviewService } from "../services/reviewService";
+import { setCart } from "../redux/slices/cartSlice";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -30,8 +34,8 @@ export default function ProductDetails() {
   const token = useSelector((s) => s.auth.token);
 
   const [product, setProduct] = useState(null);
-  const [reviews, setReviews] = useState([]);
   const [similar, setSimilar] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeImage, setActiveImage] = useState(0);
@@ -39,6 +43,11 @@ export default function ProductDetails() {
   const [wished, setWished] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartMessage, setCartMessage] = useState("");
+
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactInfo, setContactInfo] = useState(null);
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactError, setContactError] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -81,6 +90,24 @@ export default function ProductDetails() {
     }
   };
 
+  const handleBuyNow = async () => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    setAddingToCart(true);
+    setCartMessage("");
+    try {
+      const res = await cartService.addItem(product._id, 1);
+      dispatch(setCart(res.data));
+      navigate("/checkout");
+    } catch (err) {
+      setCartMessage(err.message || "Could not proceed to checkout");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   const handleToggleWishlist = async () => {
     if (!token) {
       navigate("/login");
@@ -91,6 +118,26 @@ export default function ProductDetails() {
       setWished(res.data.added);
     } catch {
       // silently ignore — non-critical action
+    }
+  };
+
+  const handleContactSeller = async () => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    setContactOpen(true);
+    if (contactInfo) return;
+
+    setContactLoading(true);
+    setContactError("");
+    try {
+      const res = await productService.getSellerContact(product._id);
+      setContactInfo(res.data);
+    } catch (err) {
+      setContactError(err.message || "Could not load seller contact details");
+    } finally {
+      setContactLoading(false);
     }
   };
 
@@ -210,7 +257,6 @@ export default function ProductDetails() {
             {product.description}
           </p>
 
-          {/* SELLER CARD */}
           {product.seller && (
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-line bg-surface p-4">
               <Link
@@ -234,18 +280,21 @@ export default function ProductDetails() {
                   />
                 </div>
               </Link>
-              <Button variant="secondary" size="sm">
-                <MessageCircle size={15} /> Chat
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleContactSeller}
+              >
+                <MessageCircle size={15} /> Contact seller
               </Button>
             </div>
           )}
 
-          {/* ACTIONS */}
           <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
             <Button
               size="lg"
               className="flex-1"
-              onClick={handleAddToCart}
+              onClick={handleBuyNow}
               disabled={addingToCart}
             >
               Buy now
@@ -319,6 +368,72 @@ export default function ProductDetails() {
             {similar.map((p) => (
               <ProductCard key={p._id} product={mapToCardShape(p)} />
             ))}
+          </div>
+        </div>
+      )}
+
+      {contactOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 backdrop-blur-sm px-4"
+          onClick={() => setContactOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-lg text-ink_text-hi">
+                Contact seller
+              </h3>
+              <button onClick={() => setContactOpen(false)} aria-label="Close">
+                <X size={18} className="text-ink_text-mid" />
+              </button>
+            </div>
+
+            {contactLoading ? (
+              <div className="flex items-center gap-2 py-4 text-sm text-ink_text-mid">
+                <Loader2 size={16} className="animate-spin" /> Loading…
+              </div>
+            ) : contactError ? (
+              <p className="text-sm text-signal-red">{contactError}</p>
+            ) : contactInfo ? (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-ink_text-mid">
+                  Reach out to{" "}
+                  <span className="text-ink_text-hi">{contactInfo.name}</span>{" "}
+                  directly to ask questions or arrange a closer look before you
+                  buy.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const subject = encodeURIComponent(
+                      "Question about your listing: " + product.title,
+                    );
+                    window.location.href =
+                      "mailto:" + contactInfo.email + "?subject=" + subject;
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-xl border border-line bg-ink px-4 py-3 text-left text-sm text-ink_text-hi hover:border-ember/40"
+                >
+                  <Mail size={15} className="text-ember" />
+                  {contactInfo.email}
+                </button>
+
+                {contactInfo.phone && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.href = "tel:" + contactInfo.phone;
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl border border-line bg-ink px-4 py-3 text-left text-sm text-ink_text-hi hover:border-ember/40"
+                  >
+                    <Phone size={15} className="text-ember" />
+                    {contactInfo.phone}
+                  </button>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       )}
