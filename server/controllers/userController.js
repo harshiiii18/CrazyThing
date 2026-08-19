@@ -41,6 +41,7 @@ exports.getPublicProfile = asyncHandler(async (req, res) => {
   return success(res, {
     message: "Profile fetched",
     data: {
+      _id: user._id,
       name: user.name,
       username: user.username,
       avatar: user.avatar,

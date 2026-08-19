@@ -12,6 +12,7 @@ exports.listProducts = asyncHandler(async (req, res) => {
     maxPrice,
     condition,
     location,
+    seller,
     verifiedOnly,
     sort = "newest",
     page = 1,
@@ -23,13 +24,17 @@ exports.listProducts = asyncHandler(async (req, res) => {
   if (category) filter.category = category;
   if (condition) filter.condition = condition;
   if (location) filter.location = { $regex: location, $options: "i" };
+  if (seller) filter.seller = seller;
   if (minPrice || maxPrice) {
     filter.price = {};
     if (minPrice) filter.price.$gte = Number(minPrice);
     if (maxPrice) filter.price.$lte = Number(maxPrice);
   }
 
-  let query = Product.find(filter).populate("seller", "name username avatar sellerVerification ratingAvg");
+  let query = Product.find(filter).populate(
+    "seller",
+    "name username avatar sellerVerification ratingAvg",
+  );
   if (verifiedOnly === "true") {
     query = query.populate({
       path: "seller",
@@ -58,7 +63,12 @@ exports.listProducts = asyncHandler(async (req, res) => {
   return success(res, {
     message: "Products fetched",
     data: verifiedOnly === "true" ? items.filter((p) => p.seller) : items,
-    meta: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) },
+    meta: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      pages: Math.ceil(total / limitNum),
+    },
   });
 });
 
@@ -66,9 +76,10 @@ exports.listProducts = asyncHandler(async (req, res) => {
 exports.getProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id).populate(
     "seller",
-    "name username avatar sellerVerification ratingAvg ratingCount completedSalesCount createdAt"
+    "name username avatar sellerVerification ratingAvg ratingCount completedSalesCount createdAt",
   );
-  if (!product || product.status === "DELETED") throw new ApiError(404, "Product not found");
+  if (!product || product.status === "DELETED")
+    throw new ApiError(404, "Product not found");
 
   product.views += 1;
   await product.save();
@@ -81,7 +92,7 @@ exports.getProduct = asyncHandler(async (req, res) => {
 exports.getSellerContact = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id).populate(
     "seller",
-    "name username email phone"
+    "name username email phone",
   );
   if (!product) throw new ApiError(404, "Product not found");
 
@@ -99,7 +110,11 @@ exports.getSellerContact = asyncHandler(async (req, res) => {
 // POST /api/products — seller creates a listing
 exports.createProduct = asyncHandler(async (req, res) => {
   const product = await Product.create({ ...req.body, seller: req.user._id });
-  return success(res, { status: 201, message: "Listing created", data: product });
+  return success(res, {
+    status: 201,
+    message: "Listing created",
+    data: product,
+  });
 });
 
 // PUT /api/products/:id — owner or admin only
@@ -136,11 +151,15 @@ exports.deleteProduct = asyncHandler(async (req, res) => {
 exports.updateProductStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
   const allowed = ["ACTIVE", "PAUSED", "SOLD_OUT"];
-  if (!allowed.includes(status)) throw new ApiError(400, "Invalid status for this action");
+  if (!allowed.includes(status))
+    throw new ApiError(400, "Invalid status for this action");
 
   const product = await Product.findById(req.params.id);
   if (!product) throw new ApiError(404, "Product not found");
-  if (product.seller.toString() !== req.user._id.toString() && req.user.role !== "ADMIN") {
+  if (
+    product.seller.toString() !== req.user._id.toString() &&
+    req.user.role !== "ADMIN"
+  ) {
     throw new ApiError(403, "You can only update your own listings");
   }
 
@@ -151,7 +170,10 @@ exports.updateProductStatus = asyncHandler(async (req, res) => {
 
 // GET /api/products/mine — seller's own listings
 exports.myProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({ seller: req.user._id, status: { $ne: "DELETED" } }).sort({
+  const products = await Product.find({
+    seller: req.user._id,
+    status: { $ne: "DELETED" },
+  }).sort({
     createdAt: -1,
   });
   return success(res, { message: "Your listings", data: products });
