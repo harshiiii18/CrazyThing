@@ -14,6 +14,8 @@ import Orders from "../pages/Orders";
 import OrderDetails from "../pages/OrderDetails";
 import Sell from "../pages/Sell";
 import { MessageCircle } from "lucide-react";
+import SellerProfile from "../pages/SellerProfile";
+import Contact from "../pages/Contact";
 import Messages from "../pages/Messages";
 import ComingSoon from "../pages/ComingSoon";
 import NotFound from "../pages/NotFound";
@@ -42,10 +44,7 @@ export default function AppRoutes() {
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/search" element={<Products />} />
         <Route path="/categories/:slug" element={<Products />} />
-        <Route
-          path="/seller/:username"
-          element={<ComingSoon title="Seller profile" />}
-        />
+        <Route path="/seller/:username" element={<SellerProfile />} />
 
         {/* Authenticated */}
         <Route path="/cart" element={<Cart />} />
@@ -80,6 +79,8 @@ export default function AppRoutes() {
             element={<ComingSoon title="Get verified" />}
           />
         </Route>
+
+        <Route path="/contact" element={<Contact />} />
 
         {/* Admin */}
         <Route element={<AdminRoute />}>
