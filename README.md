@@ -1,62 +1,73 @@
+<div align="center">
+
 # CrazyThing
 
-**Buy. Sell. Discover Everything.**
+### Buy. Sell. Discover Everything.
 
-A full-stack C2C marketplace platform where anyone can buy and sell — built as a portfolio project demonstrating end-to-end MERN development, secure payment integration, and production-style architecture.
+**A full-stack C2C marketplace platform — built to demonstrate end-to-end MERN development, secure payment integration, and production-style backend architecture.**
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-18%2B-green)](https://nodejs.org)
+[![React](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB?logo=react)](client)
+[![MongoDB](https://img.shields.io/badge/database-MongoDB-47A248?logo=mongodb&logoColor=white)](server)
 
 🔗 **Live demo:** [crazy-thing.vercel.app](https://crazy-thing.vercel.app)
-🔗 **API:** [crazything-api.onrender.com/api/health](https://crazything-api.onrender.com/api/health)
+🔗 **API health:** [crazything-api.onrender.com/api/health](https://crazything-api.onrender.com/api/health)
+
+</div>
 
 ---
 
 ## Screenshots
 
-*(Add 2–3 screenshots here — homepage, product detail, and seller dashboard work well)*
+| Homepage | Product Details |
+|---|---|
+| ![Homepage](screenshots/home.png) | ![Product Details](screenshots/product-details.png) |
+
+| Seller Dashboard | Admin Panel |
+|---|---|
+| ![Seller Dashboard](screenshots/seller-dashboard.png) | ![Admin Panel](screenshots/admin-panel.png) |
+
+---
+
+## Why this project
+
+Most portfolio marketplace clones stop at CRUD. CrazyThing goes further on the parts that actually matter in production:
+
+- **Server-authoritative pricing** — the cart and checkout never trust a price sent from the client; every total is recalculated from the database at request time.
+- **Real payment verification** — Razorpay's client-side "success" callback is never trusted alone; the backend independently verifies the HMAC-SHA256 signature before an order is marked paid.
+- **Graceful degradation** — both the AI listing assistant and the payment flow detect missing API credentials and fall back to a clearly-labeled mock mode, so the whole app is testable without paid API access.
+- **Tested, not just built** — Jest + Supertest integration tests cover authentication, listing ownership, and pricing integrity against an in-memory MongoDB.
 
 ---
 
 ## Features
 
-**Buyers**
-- Browse, search, and filter listings by category, price, condition, and location
-- AI-assisted natural-language search
-- Wishlist and cart with server-verified pricing
-- Secure checkout via Razorpay, with server-side payment signature verification
-- Order tracking with a live status timeline
-- Product and seller reviews
-
-**Sellers**
-- AI listing assistant — describe an item in plain language, get a drafted title, description, category, condition, and price range (editable before publishing)
-- Seller dashboard with revenue, order, and listing stats
-- Order fulfillment flow: accept/reject → pack → ship with courier tracking
-- Seller verification request flow
-
-**Admin**
-- Platform-wide analytics (users, listings, orders, revenue)
-- User management (suspend/activate, approve seller verification)
-- Listing moderation (reject/remove)
-
-**Platform**
-- JWT authentication with bcrypt password hashing and rate-limited auth endpoints
-- Server-authoritative pricing — cart and checkout totals are always recalculated from the database, never trusted from the client
-- Role-based access control (buyer/seller unified account + admin role)
-- 13-state order lifecycle with full audit history
-- Automated backend tests (Jest + Supertest) covering auth, listings, and pricing integrity
+| Role | Capabilities |
+|---|---|
+| **Buyer** | Search & filter listings, wishlist, server-verified cart, Razorpay checkout, order tracking timeline, product/seller reviews |
+| **Seller** | AI listing assistant (title/description/price from a rough description), seller dashboard with stats, order fulfillment (accept → pack → ship with tracking), verification requests |
+| **Admin** | Platform analytics, user suspension, seller verification approval, listing moderation |
+| **Platform** | JWT auth + bcrypt, rate-limited endpoints, role-based access control, 13-state order lifecycle, audit history |
 
 ---
 
 ## Tech stack
 
-**Frontend:** React, Vite, Redux Toolkit, React Router, Tailwind CSS, React Hook Form
-**Backend:** Node.js, Express, MongoDB, Mongoose, JWT, bcrypt
-**Payments:** Razorpay (test mode, with a mock-payment fallback when no API keys are configured)
-**AI:** Listing assistant with an Anthropic API integration and a rule-based fallback for offline/demo use
-**Testing:** Jest, Supertest, mongodb-memory-server
-**Deployment:** Vercel (frontend), Render (backend), MongoDB Atlas (database)
+| Layer | Stack |
+|---|---|
+| Frontend | React, Vite, Redux Toolkit, React Router, Tailwind CSS, React Hook Form |
+| Backend | Node.js, Express, MongoDB, Mongoose, JWT, bcrypt |
+| Payments | Razorpay (test mode; mock fallback when no keys are configured) |
+| AI | Anthropic API for listing suggestions, with a rule-based offline fallback |
+| Testing | Jest, Supertest, mongodb-memory-server |
+| Deployment | Vercel (frontend) · Render (backend) · MongoDB Atlas (database) |
 
 ---
 
-## Project structure
+## Architecture
+
+Data flow: `routes → controllers → models`, with third-party integrations (payments, AI, email) isolated behind a `services/` layer so they can be swapped or mocked independently of business logic.
 
 ---
 
@@ -64,15 +75,15 @@ A full-stack C2C marketplace platform where anyone can buy and sell — built as
 
 ### Prerequisites
 - Node.js 18+
-- A MongoDB connection string (local or [Atlas](https://www.mongodb.com/cloud/atlas) free tier)
+- A MongoDB connection string ([Atlas free tier](https://www.mongodb.com/cloud/atlas) works)
 
 ### Backend
 
 ```bash
 cd server
 npm install
-cp .env.example .env   # fill in MONGO_URI and JWT_SECRET at minimum
-npm run seed             # optional — creates demo admin/seller accounts and products
+cp .env.example .env      # fill in MONGO_URI and JWT_SECRET at minimum
+npm run seed                # optional — creates demo admin/seller accounts and products
 npm run dev
 ```
 
@@ -96,22 +107,30 @@ cd server
 npm test
 ```
 
+14 integration tests covering signup/login, listing ownership, and server-side price/stock validation.
+
 ---
 
 ## Environment variables
 
-See `server/.env.example` and `client/.env.example` for the full list. At minimum, the backend needs `MONGO_URI` and `JWT_SECRET`. Razorpay and AI features work in a demo/mock mode without credentials — see the inline comments in `server/services/paymentService.js` and `server/services/aiService.js`.
+See `server/.env.example` and `client/.env.example` for the full list. The backend runs with just `MONGO_URI` and `JWT_SECRET` set — Razorpay and the AI assistant fall back to a demo mode without credentials.
 
 ---
 
 ## Design notes
 
-- **Server-authoritative pricing**: the cart and checkout endpoints never trust a price sent from the client — every total is recalculated from the current `Product` price in the database at request time.
-- **Payment verification**: Razorpay's client-side "payment succeeded" callback is never treated as ground truth. The backend independently verifies the HMAC-SHA256 signature before marking an order as paid.
-- **Graceful AI/payment fallback**: both the AI listing assistant and Razorpay checkout detect missing API credentials and fall back to a clearly-labeled mock mode, so the app is fully testable without paid API access.
+- **Pricing integrity**: `Order.items` snapshot the product price at purchase time, so a later price change on the listing never retroactively alters a past order.
+- **Payment flow**: `POST /api/orders` creates a Razorpay order server-side → client opens the Razorpay checkout modal → `POST /api/payments/verify` independently checks the returned signature before touching order/payment status.
+- **AI fallback**: `services/aiService.js` calls the Anthropic API when `AI_API_KEY` is set; otherwise a deterministic rule-based generator produces a title/description/price range, clearly flagged as `isMock: true` in the response.
 
 ---
 
 ## Author
 
-Built by **Harshita** — [GitHub](https://github.com/harshiiii18)
+Built by **Harshita Parsendiya** — [GitHub](https://github.com/harshiiii18)
+
+---
+
+## License
+
+MIT
